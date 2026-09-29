@@ -1,0 +1,65 @@
+# Macvlan puts each container on the physical LAN with its own IP.
+# Set LAN_INTERFACE to the host NIC that is attached to that network
+# (for example eth0, enp3s0, or eth0 on a Linux Docker host).
+#
+# Required environment (create a .env next to this file):
+#   LAN_INTERFACE=eth0
+#   LAN_SUBNET=192.168.1.0/24
+#   LAN_GATEWAY=192.168.1.1
+#   BITAXE_IP_1=192.168.1.101
+#   BITAXE_IP_2=192.168.1.102
+#   BITAXE_IP_3=192.168.1.103
+#
+# Macvlan is a Linux Docker feature. On Docker Desktop for Windows/macOS
+# the parent interface is inside the Linux VM, so use a Linux host for
+# real LAN IPs.
+
+services:
+  bitaxe-gamma:
+    build: .
+    container_name: bitaxe-gamma
+    hostname: bitaxe-gamma
+    restart: unless-stopped
+    environment:
+      BITAXE_MODEL: gamma
+      BITAXE_HOSTNAME: bitaxe-gamma
+      BITAXE_IPV4: ${BITAXE_IP_1:-192.168.1.101}
+    networks:
+      bitaxe_lan:
+        ipv4_address: ${BITAXE_IP_1:-192.168.1.101}
+
+  bitaxe-supra:
+    build: .
+    container_name: bitaxe-supra
+    hostname: bitaxe-supra
+    restart: unless-stopped
+    environment:
+      BITAXE_MODEL: supra
+      BITAXE_HOSTNAME: bitaxe-supra
+      BITAXE_IPV4: ${BITAXE_IP_2:-192.168.1.102}
+    networks:
+      bitaxe_lan:
+        ipv4_address: ${BITAXE_IP_2:-192.168.1.102}
+
+  bitaxe-ultra:
+    build: .
+    container_name: bitaxe-ultra
+    hostname: bitaxe-ultra
+    restart: unless-stopped
+    environment:
+      BITAXE_MODEL: ultra
+      BITAXE_HOSTNAME: bitaxe-ultra
+      BITAXE_IPV4: ${BITAXE_IP_3:-192.168.1.103}
+    networks:
+      bitaxe_lan:
+        ipv4_address: ${BITAXE_IP_3:-192.168.1.103}
+
+networks:
+  bitaxe_lan:
+    driver: macvlan
+    driver_opts:
+      parent: ${LAN_INTERFACE:-eth0}
+    ipam:
+      config:
+        - subnet: ${LAN_SUBNET:-192.168.1.0/24}
+          gateway: ${LAN_GATEWAY:-192.168.1.1}
