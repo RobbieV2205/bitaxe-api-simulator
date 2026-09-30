@@ -1,65 +1,92 @@
-# Macvlan puts each container on the physical LAN with its own IP.
-# Set LAN_INTERFACE to the host NIC that is attached to that network
-# (for example eth0, enp3s0, or eth0 on a Linux Docker host).
-#
-# Required environment (create a .env next to this file):
-#   LAN_INTERFACE=eth0
-#   LAN_SUBNET=192.168.1.0/24
-#   LAN_GATEWAY=192.168.1.1
-#   BITAXE_IP_1=192.168.1.101
-#   BITAXE_IP_2=192.168.1.102
-#   BITAXE_IP_3=192.168.1.103
-#
-# Macvlan is a Linux Docker feature. On Docker Desktop for Windows/macOS
-# the parent interface is inside the Linux VM, so use a Linux host for
-# real LAN IPs.
+# Requires an existing Docker network named "local-network" that can assign
+# addresses on 192.168.1.0/24 (typically macvlan/ipvlan on the LAN NIC).
+# Example:
+#   docker network create -d macvlan \
+#     --subnet=192.168.1.0/24 \
+#     --gateway=192.168.1.254 \
+#     -o parent=YOUR_LAN_INTERFACE \
+#     local-network
+
+x-bitaxe: &bitaxe
+  build: .
+  restart: unless-stopped
+  dns:
+    - 192.168.1.254
 
 services:
-  bitaxe-gamma:
-    build: .
-    container_name: bitaxe-gamma
-    hostname: bitaxe-gamma
-    restart: unless-stopped
+  bitaxe-gamma-41:
+    <<: *bitaxe
+    container_name: bitaxe-gamma-41
     environment:
-      BITAXE_MODEL: gamma
-      BITAXE_HOSTNAME: bitaxe-gamma
-      BITAXE_IPV4: ${BITAXE_IP_1:-192.168.1.101}
+      DEVICE_IP: "192.168.1.41"
+      HOSTNAME: bitaxe-gamma-41
+      MAC_ADDR: "02:BA:41:00:00:01"
+      BOARD_VERSION: "601"
     networks:
-      bitaxe_lan:
-        ipv4_address: ${BITAXE_IP_1:-192.168.1.101}
+      local-network:
+        ipv4_address: 192.168.1.41
 
-  bitaxe-supra:
-    build: .
-    container_name: bitaxe-supra
-    hostname: bitaxe-supra
-    restart: unless-stopped
+  bitaxe-gamma-42:
+    <<: *bitaxe
+    container_name: bitaxe-gamma-42
     environment:
-      BITAXE_MODEL: supra
-      BITAXE_HOSTNAME: bitaxe-supra
-      BITAXE_IPV4: ${BITAXE_IP_2:-192.168.1.102}
+      DEVICE_IP: "192.168.1.42"
+      HOSTNAME: bitaxe-gamma-42
+      MAC_ADDR: "02:BA:41:00:00:02"
+      BOARD_VERSION: "601"
     networks:
-      bitaxe_lan:
-        ipv4_address: ${BITAXE_IP_2:-192.168.1.102}
+      local-network:
+        ipv4_address: 192.168.1.42
 
-  bitaxe-ultra:
-    build: .
-    container_name: bitaxe-ultra
-    hostname: bitaxe-ultra
-    restart: unless-stopped
+  bitaxe-gamma-43:
+    <<: *bitaxe
+    container_name: bitaxe-gamma-43
     environment:
-      BITAXE_MODEL: ultra
-      BITAXE_HOSTNAME: bitaxe-ultra
-      BITAXE_IPV4: ${BITAXE_IP_3:-192.168.1.103}
+      DEVICE_IP: "192.168.1.43"
+      HOSTNAME: bitaxe-gamma-43
+      MAC_ADDR: "02:BA:41:00:00:03"
+      BOARD_VERSION: "601"
     networks:
-      bitaxe_lan:
-        ipv4_address: ${BITAXE_IP_3:-192.168.1.103}
+      local-network:
+        ipv4_address: 192.168.1.43
+
+  bitaxe-gamma-44:
+    <<: *bitaxe
+    container_name: bitaxe-gamma-44
+    environment:
+      DEVICE_IP: "192.168.1.44"
+      HOSTNAME: bitaxe-gamma-44
+      MAC_ADDR: "02:BA:41:00:00:04"
+      BOARD_VERSION: "601"
+    networks:
+      local-network:
+        ipv4_address: 192.168.1.44
+
+  bitaxe-gamma-45:
+    <<: *bitaxe
+    container_name: bitaxe-gamma-45
+    environment:
+      DEVICE_IP: "192.168.1.45"
+      HOSTNAME: bitaxe-gamma-45
+      MAC_ADDR: "02:BA:41:00:00:05"
+      BOARD_VERSION: "601"
+    networks:
+      local-network:
+        ipv4_address: 192.168.1.45
+
+  bitaxe-gamma-46:
+    <<: *bitaxe
+    container_name: bitaxe-gamma-46
+    environment:
+      DEVICE_IP: "192.168.1.46"
+      HOSTNAME: bitaxe-gamma-46
+      MAC_ADDR: "02:BA:41:00:00:06"
+      BOARD_VERSION: "601"
+    networks:
+      local-network:
+        ipv4_address: 192.168.1.46
 
 networks:
-  bitaxe_lan:
-    driver: macvlan
-    driver_opts:
-      parent: ${LAN_INTERFACE:-eth0}
-    ipam:
-      config:
-        - subnet: ${LAN_SUBNET:-192.168.1.0/24}
-          gateway: ${LAN_GATEWAY:-192.168.1.1}
+  local-network:
+    external: true
+    name: local-network
